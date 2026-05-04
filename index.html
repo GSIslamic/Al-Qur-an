@@ -1,0 +1,934 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GS Islamic Qur'an</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Amiri:ital,wght@0,400;0,700;1,400&family=Scheherazade+New:wght@400;700&family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #C9A84C;
+  --gold-light: #F0D080;
+  --gold-dark: #8B6914;
+  --emerald: #0D5C3A;
+  --emerald-light: #1A8A57;
+  --emerald-dark: #073D26;
+  --cream: #FAF6EE;
+  --dark: #050F08;
+  --text-muted: rgba(201,168,76,0.5);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  background: var(--dark);
+  color: var(--cream);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ───── LOADING ───── */
+#loading-screen {
+  position: fixed; inset: 0; z-index: 9999;
+  background: radial-gradient(ellipse at 50% 40%, #0A2515 0%, #061009 55%, #020705 100%);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 28px;
+  transition: opacity 0.9s ease, visibility 0.9s ease;
+}
+#loading-screen.hide { opacity:0; visibility:hidden; pointer-events:none; }
+
+.donut-wrap { position:relative; width:140px; height:140px; }
+
+.donut-svg {
+  width:140px; height:140px;
+  animation: spinDonut 1.6s linear infinite;
+  transform-origin: center;
+  transform-box: fill-box;
+}
+@keyframes spinDonut { to { transform: rotate(360deg); } }
+
+.donut-center {
+  position:absolute; top:50%; left:50%;
+  transform: translate(-50%,-50%);
+  display: flex; align-items:center; justify-content:center;
+}
+.crescent-svg { width:52px; height:52px; animation: pulseIcon 2.2s ease-in-out infinite; }
+@keyframes pulseIcon {
+  0%,100% { opacity:0.75; transform:scale(1); }
+  50% { opacity:1; transform:scale(1.08); }
+}
+
+.loading-brand {
+  text-align: center;
+  animation: riseUp 0.7s ease both;
+}
+.loading-brand h1 {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1.8rem, 6vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  background: linear-gradient(135deg, #F0D080 0%, #C9A84C 50%, #8B6914 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.1;
+}
+.loading-brand p {
+  font-family: 'Scheherazade New', serif;
+  font-size: 1.3rem;
+  color: rgba(201,168,76,0.65);
+  margin-top: 6px;
+  direction: rtl;
+}
+
+.loading-bar-wrap {
+  width: 200px; height: 3px;
+  background: rgba(201,168,76,0.12);
+  border-radius: 99px; overflow: hidden;
+  animation: riseUp 0.7s ease 0.3s both;
+}
+.loading-bar-inner {
+  height:100%;
+  background: linear-gradient(90deg, #8B6914, #F0D080, #8B6914);
+  background-size: 200% 100%;
+  border-radius: 99px;
+  width: 0;
+  animation: fillBar 5s ease forwards, shimmer 1.5s linear 0.5s infinite;
+}
+@keyframes fillBar { 0%{width:0} 100%{width:100%} }
+@keyframes shimmer { 0%{background-position:100% 0} 100%{background-position:-100% 0} }
+@keyframes riseUp {
+  from{opacity:0;transform:translateY(18px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* ───── BACKGROUND GEOMETRY ───── */
+.geo-bg {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  opacity: 0.035; overflow: hidden;
+}
+
+/* ───── APP ───── */
+#app { display:none; min-height:100vh; position:relative; }
+#app.visible { display:block; }
+
+/* ───── HEADER ───── */
+.app-header {
+  position: relative; z-index: 2;
+  padding: 36px 24px 28px;
+  text-align: center;
+  background: linear-gradient(180deg, rgba(13,92,58,0.18) 0%, transparent 100%);
+  border-bottom: 1px solid rgba(201,168,76,0.12);
+}
+.app-header::after {
+  content:'';
+  position:absolute; bottom:-1px; left:50%;
+  transform: translateX(-50%);
+  width:160px; height:2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+
+.header-logo-row {
+  display:flex; align-items:center; justify-content:center;
+  gap:16px; margin-bottom:8px;
+}
+.h-icon { width:44px; height:44px; flex-shrink:0; }
+
+.app-title {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(1.6rem,5vw,2.6rem);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  background: linear-gradient(135deg, #F0D080 0%, #C9A84C 55%, #8B6914 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.app-tagline {
+  font-family: 'Scheherazade New', serif;
+  font-size: 1.15rem;
+  color: rgba(201,168,76,0.55);
+  margin-top: 4px;
+}
+
+/* ───── CONTAINER ───── */
+.container { max-width: 680px; margin: 0 auto; padding: 0 20px; position:relative; z-index:2; }
+
+/* ───── SETUP ───── */
+#setup-section { margin: 52px auto; max-width:580px; padding:0 20px; position:relative;z-index:2; }
+
+.setup-card {
+  background: linear-gradient(145deg, rgba(13,92,58,0.22) 0%, rgba(5,15,8,0.7) 100%);
+  border: 1px solid rgba(201,168,76,0.22);
+  border-radius: 22px;
+  padding: 38px 34px;
+  backdrop-filter: blur(14px);
+  animation: riseUp 0.55s ease;
+  position: relative; overflow: hidden;
+}
+.setup-card::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.setup-card::after {
+  content:'';
+  position:absolute; bottom:-40px; right:-40px;
+  width:130px; height:130px;
+  background: radial-gradient(circle, rgba(201,168,76,0.07) 0%, transparent 70%);
+  border-radius:50%; pointer-events:none;
+}
+
+.ornament-svg { display:block; margin: 0 auto 22px; width:90px; }
+
+.setup-title {
+  font-family:'Cinzel', serif;
+  font-size: 1.25rem; font-weight:600;
+  color: var(--gold-light);
+  text-align:center; margin-bottom:8px;
+  letter-spacing: 0.05em;
+}
+.setup-desc {
+  font-size: 0.93rem;
+  color: rgba(201,168,76,0.45);
+  text-align:center; margin-bottom:28px;
+  line-height:1.6;
+}
+
+.input-group { display:flex; flex-direction:column; gap:7px; margin-bottom:14px; }
+.input-label {
+  font-family:'Cinzel', serif;
+  font-size:0.72rem; letter-spacing:0.12em;
+  color: var(--gold); text-transform:uppercase;
+}
+.api-input {
+  background: rgba(0,0,0,0.45);
+  border: 1px solid rgba(201,168,76,0.25);
+  border-radius: 11px;
+  padding: 13px 16px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.87rem;
+  color: var(--cream);
+  outline: none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  width: 100%;
+}
+.api-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+}
+.api-input::placeholder { color: rgba(201,168,76,0.28); }
+
+.api-link-row { display:flex; align-items:center; gap:8px; margin-bottom:26px; }
+.api-link-icon { width:15px; height:15px; flex-shrink:0; opacity:0.45; }
+.api-link {
+  font-size:0.8rem; font-style:italic;
+  color: var(--gold); opacity:0.65;
+  text-decoration:none; transition:opacity 0.2s;
+}
+.api-link:hover { opacity:1; text-decoration:underline; }
+
+.btn-primary {
+  width:100%;
+  background: linear-gradient(135deg, var(--emerald-dark), var(--emerald-light));
+  border: 1px solid rgba(201,168,76,0.35);
+  border-radius: 11px;
+  padding: 14px 24px;
+  font-family:'Cinzel', serif;
+  font-size:0.93rem; font-weight:600;
+  color: var(--gold-light);
+  letter-spacing:0.08em;
+  cursor:pointer;
+  transition: all 0.3s;
+  display:flex; align-items:center; justify-content:center; gap:10px;
+}
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--emerald), #25B572);
+  box-shadow: 0 6px 28px rgba(26,138,87,0.3);
+  transform: translateY(-2px);
+}
+.btn-primary svg { width:17px; height:17px; }
+
+/* ───── SEARCH ───── */
+#search-section { display:none; position:relative;z-index:2; }
+#search-section.visible { display:block; }
+
+.search-wrap {
+  max-width:680px; margin:40px auto 0;
+  padding:0 20px;
+}
+
+.search-card {
+  background: linear-gradient(145deg, rgba(13,92,58,0.18) 0%, rgba(5,15,8,0.55) 100%);
+  border: 1px solid rgba(201,168,76,0.18);
+  border-radius: 18px;
+  padding: 24px 22px;
+  backdrop-filter: blur(10px);
+  animation: riseUp 0.5s ease;
+  margin-bottom: 28px;
+}
+.search-row { display:flex; gap:10px; align-items:center; }
+.search-input {
+  flex:1;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(201,168,76,0.25);
+  border-radius: 12px;
+  padding: 13px 17px;
+  font-family:'Cormorant Garamond', serif;
+  font-size: 1.08rem;
+  color: var(--cream);
+  outline:none;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+.search-input:focus {
+  border-color: var(--gold);
+  box-shadow: 0 0 0 3px rgba(201,168,76,0.1);
+}
+.search-input::placeholder { color:rgba(201,168,76,0.28); font-style:italic; }
+
+.btn-search {
+  background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+  border:none; border-radius:12px;
+  padding:13px 18px; cursor:pointer;
+  transition: all 0.3s;
+  display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+.btn-search:hover { transform:scale(1.06); box-shadow:0 4px 22px rgba(201,168,76,0.35); }
+.btn-search svg { width:20px; height:20px; }
+
+.change-api-btn {
+  margin-top:12px;
+  background:transparent;
+  border: 1px solid rgba(201,168,76,0.16);
+  border-radius:8px;
+  padding:7px 13px;
+  font-family:'Cinzel', serif;
+  font-size:0.7rem; letter-spacing:0.06em;
+  color:rgba(201,168,76,0.45);
+  cursor:pointer;
+  transition: all 0.2s;
+  display:flex; align-items:center; gap:6px;
+}
+.change-api-btn:hover { border-color:rgba(201,168,76,0.45); color:var(--gold); }
+.change-api-btn svg { width:11px; height:11px; }
+
+/* ───── RESULT ───── */
+#result-area { max-width:680px; margin:0 auto; padding:0 20px 64px; }
+
+.surah-card {
+  background: linear-gradient(160deg, rgba(13,92,58,0.22) 0%, rgba(5,15,8,0.7) 100%);
+  border: 1px solid rgba(201,168,76,0.22);
+  border-radius: 22px;
+  overflow:hidden;
+  animation: riseUp 0.5s ease;
+  position:relative;
+}
+.surah-card::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:2px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  z-index:1;
+}
+
+.surah-header {
+  padding: 28px 30px 22px;
+  border-bottom: 1px solid rgba(201,168,76,0.1);
+  display:flex; align-items:center; gap:18px;
+}
+.surah-num-badge {
+  width:54px; height:54px;
+  background: linear-gradient(135deg, var(--emerald-dark), var(--emerald-light));
+  border: 1px solid rgba(201,168,76,0.35);
+  border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Cinzel', serif;
+  font-size:1rem; font-weight:700;
+  color: var(--gold-light);
+  flex-shrink:0;
+}
+.surah-meta h2 {
+  font-family:'Scheherazade New', 'Amiri', serif;
+  font-size: 2rem;
+  color: var(--gold-light);
+  line-height:1;
+}
+.surah-meta .s-latin {
+  font-family:'Cinzel', serif;
+  font-size:1.1rem; font-weight:600;
+  color: var(--gold); margin-top:3px;
+}
+.surah-meta .s-info {
+  font-size:0.83rem;
+  color: rgba(201,168,76,0.45);
+  margin-top:5px; font-style:italic;
+}
+
+.bismillah-bar {
+  text-align:center;
+  padding: 20px 24px 8px;
+  font-family:'Scheherazade New', serif;
+  font-size: clamp(1.5rem, 4.5vw, 2.3rem);
+  color: var(--gold-light);
+  direction:rtl;
+  opacity:0.82;
+}
+
+.ayat-list { }
+.ayat-item {
+  padding: 22px 30px;
+  border-bottom: 1px solid rgba(201,168,76,0.05);
+  transition: background 0.2s;
+}
+.ayat-item:last-child { border-bottom:none; }
+.ayat-item:hover { background: rgba(201,168,76,0.03); }
+
+.ayat-num {
+  display:inline-flex; align-items:center; justify-content:center;
+  width:28px; height:28px;
+  background: rgba(201,168,76,0.1);
+  border: 1px solid rgba(201,168,76,0.22);
+  border-radius:50%;
+  font-family:'Cinzel', serif;
+  font-size:0.68rem;
+  color: var(--gold);
+  margin-bottom:12px;
+}
+.ayat-arab {
+  font-family:'Scheherazade New', 'Amiri', serif;
+  font-size: clamp(1.5rem, 4vw, 2.1rem);
+  line-height:2.1;
+  direction:rtl; text-align:right;
+  color: var(--cream);
+  margin-bottom:14px;
+}
+.ayat-latin {
+  font-family:'Cormorant Garamond', serif;
+  font-size:1.05rem; font-style:italic;
+  color: var(--gold);
+  opacity:0.78;
+  line-height:1.7; margin-bottom:7px;
+}
+.ayat-trans {
+  font-size:0.9rem;
+  color: rgba(201,168,76,0.48);
+  line-height:1.75;
+}
+
+/* ───── SPINNER ───── */
+.spinner-wrap {
+  display:flex; flex-direction:column; align-items:center; gap:16px;
+  padding:52px 20px;
+}
+.spin-ring {
+  width:50px; height:50px;
+  border: 3px solid rgba(201,168,76,0.14);
+  border-top-color: var(--gold);
+  border-radius:50%;
+  animation: spin 0.9s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+.spin-text {
+  font-family:'Cinzel', serif;
+  font-size:0.82rem; letter-spacing:0.08em;
+  color: rgba(201,168,76,0.6);
+}
+
+/* ───── NOTIF ───── */
+#notif-container {
+  position:fixed; top:22px; right:22px;
+  z-index:5000;
+  display:flex; flex-direction:column; gap:10px;
+}
+.notif {
+  background: rgba(5,15,8,0.96);
+  border: 1px solid;
+  border-radius:14px;
+  padding:13px 17px;
+  display:flex; align-items:flex-start; gap:11px;
+  max-width:330px;
+  animation: notifSlide 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  backdrop-filter:blur(16px);
+  box-shadow: 0 8px 36px rgba(0,0,0,0.55);
+  transition: opacity 0.4s, transform 0.4s;
+}
+@keyframes notifSlide {
+  from { opacity:0; transform:translateX(55px) scale(0.94); }
+  to   { opacity:1; transform:translateX(0) scale(1); }
+}
+.notif.success { border-color:rgba(26,138,87,0.45); }
+.notif.error   { border-color:rgba(200,60,60,0.45); }
+.notif-icon { width:19px; height:19px; flex-shrink:0; margin-top:1px; }
+.notif-msg { font-size:0.88rem; line-height:1.5; }
+.notif.success .notif-msg { color:#80EDB0; }
+.notif.error   .notif-msg { color:#F09090; }
+
+@media(max-width:480px){
+  .setup-card { padding:26px 18px; }
+  .surah-header { padding:20px 18px; flex-direction:column; align-items:flex-start; }
+  .ayat-item { padding:18px 18px; }
+  .search-card { padding:18px 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading-screen">
+  <div class="donut-wrap">
+    <svg class="donut-svg" viewBox="0 0 140 140" fill="none">
+      <!-- Track -->
+      <circle cx="70" cy="70" r="58" stroke="rgba(201,168,76,0.10)" stroke-width="14"/>
+      <!-- Main arc -->
+      <path d="M70 12 A58 58 0 1 1 12 70" stroke="url(#dg1)" stroke-width="14" stroke-linecap="round"/>
+      <!-- Small trailing arc -->
+      <path d="M70 12 A58 58 0 0 0 12 70" stroke="url(#dg2)" stroke-width="14" stroke-linecap="round" opacity="0.2"/>
+      <defs>
+        <linearGradient id="dg1" x1="70" y1="12" x2="12" y2="70" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#F0D080"/>
+          <stop offset="0.5" stop-color="#C9A84C"/>
+          <stop offset="1" stop-color="#8B6914"/>
+        </linearGradient>
+        <linearGradient id="dg2" x1="70" y1="12" x2="12" y2="70" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#8B6914" stop-opacity="0.5"/>
+          <stop offset="1" stop-color="#8B6914" stop-opacity="0"/>
+        </linearGradient>
+      </defs>
+    </svg>
+    <div class="donut-center">
+      <!-- Crescent + Star Islamic icon -->
+      <svg class="crescent-svg" viewBox="0 0 52 52" fill="none">
+        <path d="M26 6C15 6 6 15 6 26C6 37 15 46 26 46C32 46 37.5 43.3 41.3 39C38.5 39.9 35.5 40.3 32 39.8C22 38.3 14.5 29.5 15 19.5C15.3 13.8 18.2 8.9 22.5 6C23.7 6.2 24.8 6 26 6Z" fill="url(#cg1)"/>
+        <path d="M38 10 L39.5 14.5 L44 14.5 L40.5 17.5 L42 22 L38 19 L34 22 L35.5 17.5 L32 14.5 L36.5 14.5 Z" fill="url(#cg2)"/>
+        <defs>
+          <linearGradient id="cg1" x1="6" y1="6" x2="46" y2="46" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#F0D080"/><stop offset="1" stop-color="#C9A84C"/>
+          </linearGradient>
+          <linearGradient id="cg2" x1="32" y1="10" x2="44" y2="22" gradientUnits="userSpaceOnUse">
+            <stop stop-color="#FAF6EE"/><stop offset="1" stop-color="#F0D080"/>
+          </linearGradient>
+        </defs>
+      </svg>
+    </div>
+  </div>
+  <div class="loading-brand">
+    <h1>GS Islamic Qur'an</h1>
+    <p>بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</p>
+  </div>
+  <div class="loading-bar-wrap">
+    <div class="loading-bar-inner"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- Geometric Background -->
+  <div class="geo-bg">
+    <svg viewBox="0 0 900 700" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="geo-pattern" width="70" height="70" patternUnits="userSpaceOnUse">
+          <path d="M70 0L0 0L0 70" fill="none" stroke="#C9A84C" stroke-width="0.5"/>
+          <circle cx="0" cy="0" r="1.5" fill="#C9A84C"/>
+          <circle cx="70" cy="70" r="1.5" fill="#C9A84C"/>
+          <circle cx="35" cy="35" r="1" fill="#C9A84C" opacity="0.5"/>
+        </pattern>
+      </defs>
+      <rect width="900" height="700" fill="url(#geo-pattern)"/>
+      <circle cx="450" cy="350" r="280" fill="none" stroke="#C9A84C" stroke-width="1"/>
+      <circle cx="450" cy="350" r="200" fill="none" stroke="#C9A84C" stroke-width="0.6"/>
+      <polygon points="450,120 620,240 620,460 450,580 280,460 280,240" fill="none" stroke="#C9A84C" stroke-width="0.8"/>
+      <polygon points="450,170 580,260 580,440 450,530 320,440 320,260" fill="none" stroke="#C9A84C" stroke-width="0.4"/>
+    </svg>
+  </div>
+
+  <!-- Header -->
+  <header class="app-header">
+    <div class="header-logo-row">
+      <!-- Logo Left -->
+      <svg class="h-icon" viewBox="0 0 44 44" fill="none">
+        <circle cx="22" cy="22" r="20.5" stroke="url(#hl1)" stroke-width="1.5"/>
+        <path d="M22 7C13.7 7 7 13.7 7 22C7 30.3 13.7 37 22 37C26.5 37 30.5 35.2 33.5 32.2C31.5 32.8 29.3 33.1 26.8 32.7C19.5 31.6 14 24.8 14.4 17.5C14.6 13 17 9.3 20.4 7.1C20.9 7.1 21.5 7 22 7Z" fill="url(#hl2)"/>
+        <path d="M32 11 L33.2 14.8 L37 14.8 L34 17.2 L35.2 21 L32 18.6 L28.8 21 L30 17.2 L27 14.8 L30.8 14.8 Z" fill="url(#hl3)"/>
+        <defs>
+          <linearGradient id="hl1" x1="1.5" y1="1.5" x2="42.5" y2="42.5"><stop stop-color="#F0D080"/><stop offset="1" stop-color="#8B6914"/></linearGradient>
+          <linearGradient id="hl2" x1="7" y1="7" x2="37" y2="37"><stop stop-color="#F0D080"/><stop offset="1" stop-color="#C9A84C"/></linearGradient>
+          <linearGradient id="hl3" x1="27" y1="11" x2="37" y2="21"><stop stop-color="#FAF6EE"/><stop offset="1" stop-color="#F0D080"/></linearGradient>
+        </defs>
+      </svg>
+      <h1 class="app-title">GS Islamic Qur'an</h1>
+      <!-- Logo Right -->
+      <svg class="h-icon" viewBox="0 0 44 44" fill="none">
+        <circle cx="22" cy="22" r="20.5" stroke="url(#hr1)" stroke-width="1.5"/>
+        <path d="M22 7C13.7 7 7 13.7 7 22C7 30.3 13.7 37 22 37C26.5 37 30.5 35.2 33.5 32.2C31.5 32.8 29.3 33.1 26.8 32.7C19.5 31.6 14 24.8 14.4 17.5C14.6 13 17 9.3 20.4 7.1C20.9 7.1 21.5 7 22 7Z" fill="url(#hr2)"/>
+        <path d="M32 11 L33.2 14.8 L37 14.8 L34 17.2 L35.2 21 L32 18.6 L28.8 21 L30 17.2 L27 14.8 L30.8 14.8 Z" fill="url(#hr3)"/>
+        <defs>
+          <linearGradient id="hr1" x1="1.5" y1="1.5" x2="42.5" y2="42.5"><stop stop-color="#F0D080"/><stop offset="1" stop-color="#8B6914"/></linearGradient>
+          <linearGradient id="hr2" x1="7" y1="7" x2="37" y2="37"><stop stop-color="#F0D080"/><stop offset="1" stop-color="#C9A84C"/></linearGradient>
+          <linearGradient id="hr3" x1="27" y1="11" x2="37" y2="21"><stop stop-color="#FAF6EE"/><stop offset="1" stop-color="#F0D080"/></linearGradient>
+        </defs>
+      </svg>
+    </div>
+    <p class="app-tagline" id="app-tagline">Jelajahi Al-Qur'an dengan Kecerdasan Ilahi</p>
+  </header>
+
+  <!-- Setup Section -->
+  <div id="setup-section">
+    <div class="setup-card">
+      <!-- Ornament -->
+      <svg class="ornament-svg" viewBox="0 0 90 45" fill="none">
+        <path d="M0 22.5 Q22.5 5 45 22.5 Q67.5 40 90 22.5" stroke="url(#orn1)" stroke-width="1.5" fill="none"/>
+        <path d="M0 22.5 Q22.5 40 45 22.5 Q67.5 5 90 22.5" stroke="url(#orn2)" stroke-width="1.5" fill="none" opacity="0.4"/>
+        <circle cx="45" cy="22.5" r="4.5" fill="url(#orn3)"/>
+        <circle cx="9" cy="22.5" r="2" fill="#C9A84C" opacity="0.45"/>
+        <circle cx="81" cy="22.5" r="2" fill="#C9A84C" opacity="0.45"/>
+        <path d="M20 22.5 L45 10 L70 22.5 L45 35 Z" stroke="#C9A84C" stroke-width="0.5" fill="none" opacity="0.2"/>
+        <defs>
+          <linearGradient id="orn1" x1="0" y1="0" x2="90" y2="0"><stop stop-color="#F0D080"/><stop offset="1" stop-color="#8B6914"/></linearGradient>
+          <linearGradient id="orn2" x1="90" y1="0" x2="0" y2="0"><stop stop-color="#F0D080"/><stop offset="1" stop-color="#8B6914"/></linearGradient>
+          <radialGradient id="orn3"><stop stop-color="#FAF6EE"/><stop offset="1" stop-color="#C9A84C"/></radialGradient>
+        </defs>
+      </svg>
+
+      <div class="setup-title" id="setup-title">Masukkan Claude API Key</div>
+      <div class="setup-desc" id="setup-desc">Diperlukan untuk mengakses konten Al-Qur'an yang akurat</div>
+
+      <div class="input-group">
+        <label class="input-label" id="api-label">API KEY</label>
+        <input class="api-input" type="password" id="api-key-input" placeholder="sk-ant-api03-..." autocomplete="off" spellcheck="false"/>
+      </div>
+
+      <div class="api-link-row">
+        <svg class="api-link-icon" viewBox="0 0 15 15" fill="none">
+          <circle cx="7.5" cy="7.5" r="6.5" stroke="#C9A84C" stroke-width="1"/>
+          <path d="M7.5 6.5v4M7.5 4.5v.8" stroke="#C9A84C" stroke-width="1.3" stroke-linecap="round"/>
+        </svg>
+        <a class="api-link" id="api-link-text" href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">
+          Dapatkan API Key di console.anthropic.com/settings/keys
+        </a>
+      </div>
+
+      <button class="btn-primary" id="save-api-btn">
+        <svg viewBox="0 0 17 17" fill="none">
+          <path d="M8.5 1.5L15 5.5V11.5L8.5 15.5L2 11.5V5.5L8.5 1.5Z" stroke="currentColor" stroke-width="1.3"/>
+          <path d="M8.5 6.5L10.5 8.5L8.5 10.5L6.5 8.5L8.5 6.5Z" fill="currentColor"/>
+        </svg>
+        <span id="save-btn-text">Simpan &amp; Mulai</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Search Section -->
+  <div id="search-section">
+    <div class="search-wrap">
+      <div class="search-card">
+        <div class="search-row">
+          <input class="search-input" type="text" id="surah-input" autocomplete="off"
+            placeholder="Contoh: Al-Fatihah, Al-Baqarah, An-Nas..."/>
+          <button class="btn-search" id="search-btn">
+            <svg viewBox="0 0 20 20" fill="none">
+              <circle cx="9" cy="9" r="6.5" stroke="#050F08" stroke-width="2.2"/>
+              <path d="M14 14L17.5 17.5" stroke="#050F08" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <button class="change-api-btn" id="change-api-btn">
+          <svg viewBox="0 0 12 12" fill="none">
+            <path d="M10.5 6A4.5 4.5 0 1 1 6 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/>
+            <path d="M6 1.5L8.5 4H5.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span id="change-api-text">Ganti API Key</span>
+        </button>
+      </div>
+    </div>
+    <div id="result-area"></div>
+  </div>
+</div>
+
+<!-- Notif Container -->
+<div id="notif-container"></div>
+
+<script>
+// ─── Detect Language ───
+const browserLang = (navigator.language || navigator.userLanguage || 'id').toLowerCase().slice(0,2);
+
+const i18n = {
+  id: {
+    tagline:'Jelajahi Al-Qur\'an dengan Kecerdasan Ilahi',
+    setupTitle:'Masukkan Claude API Key',
+    setupDesc:'Diperlukan untuk mengakses konten Al-Qur\'an yang akurat',
+    apiLabel:'API KEY',
+    apiLink:'Dapatkan API Key di console.anthropic.com/settings/keys',
+    saveBtnText:'Simpan & Mulai',
+    changeApi:'Ganti API Key',
+    searchPlaceholder:'Contoh: Al-Fatihah, Al-Baqarah, An-Nas...',
+    errApiEmpty:'Masukkan API Key terlebih dahulu.',
+    errApiInvalid:'API Key tidak valid. Pastikan dimulai dengan sk-ant-...',
+    errSurahEmpty:'Masukkan nama surah terlebih dahulu.',
+    errSurahNotFound:'Surah tidak ditemukan atau nama tidak valid. Coba nama lain.',
+    errGeneral:'Terjadi kesalahan. Silakan coba lagi.',
+    successApi:'API Key berhasil disimpan!',
+    successSearch:'Surah berhasil ditemukan!',
+    loadingText:'Sedang mencari surah...',
+    place:'Tempat turun',
+    totalAyat:'Jumlah ayat',
+  },
+  en: {
+    tagline:'Explore the Qur\'an with Divine Intelligence',
+    setupTitle:'Enter Your Claude API Key',
+    setupDesc:'Required to access accurate Qur\'anic content',
+    apiLabel:'API KEY',
+    apiLink:'Get your API Key at console.anthropic.com/settings/keys',
+    saveBtnText:'Save & Start',
+    changeApi:'Change API Key',
+    searchPlaceholder:'E.g.: Al-Fatihah, Al-Baqarah, An-Nas...',
+    errApiEmpty:'Please enter your API Key.',
+    errApiInvalid:'Invalid API Key. Must start with sk-ant-...',
+    errSurahEmpty:'Please enter a surah name.',
+    errSurahNotFound:'Surah not found or invalid. Please try another name.',
+    errGeneral:'An error occurred. Please try again.',
+    successApi:'API Key saved successfully!',
+    successSearch:'Surah found successfully!',
+    loadingText:'Searching surah...',
+    place:'Revealed in',
+    totalAyat:'Total verses',
+  },
+  ar: {
+    tagline:'استكشف القرآن الكريم بمساعدة الذكاء الاصطناعي',
+    setupTitle:'أدخل مفتاح Claude API',
+    setupDesc:'مطلوب للوصول إلى محتوى القرآن الكريم',
+    apiLabel:'API KEY',
+    apiLink:'احصل على المفتاح من console.anthropic.com/settings/keys',
+    saveBtnText:'حفظ والبدء',
+    changeApi:'تغيير المفتاح',
+    searchPlaceholder:'مثال: الفاتحة، البقرة، الناس...',
+    errApiEmpty:'يرجى إدخال مفتاح API.',
+    errApiInvalid:'مفتاح API غير صالح.',
+    errSurahEmpty:'يرجى إدخال اسم السورة.',
+    errSurahNotFound:'السورة غير موجودة. حاول مرة أخرى.',
+    errGeneral:'حدث خطأ. يرجى المحاولة مرة أخرى.',
+    successApi:'تم حفظ المفتاح بنجاح!',
+    successSearch:'تم العثور على السورة!',
+    loadingText:'جارٍ البحث عن السورة...',
+    place:'مكان النزول',
+    totalAyat:'عدد الآيات',
+  },
+  ms: {
+    tagline:'Terokai Al-Qur\'an dengan Kecerdasan Buatan',
+    setupTitle:'Masukkan Claude API Key',
+    setupDesc:'Diperlukan untuk mengakses kandungan Al-Qur\'an yang tepat',
+    apiLabel:'API KEY',
+    apiLink:'Dapatkan API Key di console.anthropic.com/settings/keys',
+    saveBtnText:'Simpan & Mula',
+    changeApi:'Tukar API Key',
+    searchPlaceholder:'Contoh: Al-Fatihah, Al-Baqarah, An-Nas...',
+    errApiEmpty:'Sila masukkan API Key anda.',
+    errApiInvalid:'API Key tidak sah. Mesti bermula dengan sk-ant-...',
+    errSurahEmpty:'Sila masukkan nama surah.',
+    errSurahNotFound:'Surah tidak dijumpai. Cuba nama lain.',
+    errGeneral:'Ralat berlaku. Sila cuba lagi.',
+    successApi:'API Key berjaya disimpan!',
+    successSearch:'Surah berjaya ditemui!',
+    loadingText:'Sedang mencari surah...',
+    place:'Tempat turun',
+    totalAyat:'Jumlah ayat',
+  }
+};
+
+const t = i18n[browserLang] || i18n.en;
+
+// Apply translations
+document.getElementById('app-tagline').textContent = t.tagline;
+document.getElementById('setup-title').textContent = t.setupTitle;
+document.getElementById('setup-desc').textContent = t.setupDesc;
+document.getElementById('api-label').textContent = t.apiLabel;
+document.getElementById('api-link-text').textContent = t.apiLink;
+document.getElementById('save-btn-text').textContent = t.saveBtnText;
+document.getElementById('change-api-text').textContent = t.changeApi;
+document.getElementById('surah-input').placeholder = t.searchPlaceholder;
+
+// ─── Loading ───
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const ls = document.getElementById('loading-screen');
+    ls.classList.add('hide');
+    document.getElementById('app').classList.add('visible');
+  }, 5000);
+});
+
+// ─── Notifications ───
+function showNotif(msg, type = 'success') {
+  const container = document.getElementById('notif-container');
+  const el = document.createElement('div');
+  el.className = 'notif ' + type;
+  const iconColor = type === 'success' ? '#80EDB0' : '#F09090';
+  const iconInner = type === 'success'
+    ? `<path d="M4.5 9.5L8 13L14.5 6.5" stroke="${iconColor}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>`
+    : `<path d="M5.5 5.5L13.5 13.5M13.5 5.5L5.5 13.5" stroke="${iconColor}" stroke-width="1.8" stroke-linecap="round"/>`;
+  el.innerHTML = `
+    <svg class="notif-icon" viewBox="0 0 19 19" fill="none">
+      <circle cx="9.5" cy="9.5" r="8.5" stroke="${iconColor}" stroke-width="1.2"/>
+      ${iconInner}
+    </svg>
+    <span class="notif-msg">${msg}</span>`;
+  container.appendChild(el);
+  setTimeout(() => {
+    el.style.opacity = '0';
+    el.style.transform = 'translateX(40px) scale(0.95)';
+    setTimeout(() => el.remove(), 400);
+  }, 3600);
+}
+
+// ─── API Key ───
+let apiKey = '';
+
+document.getElementById('save-api-btn').addEventListener('click', () => {
+  const val = document.getElementById('api-key-input').value.trim();
+  if (!val) { showNotif(t.errApiEmpty, 'error'); return; }
+  if (!val.startsWith('sk-ant')) { showNotif(t.errApiInvalid, 'error'); return; }
+  apiKey = val;
+  showNotif(t.successApi, 'success');
+  document.getElementById('setup-section').style.display = 'none';
+  document.getElementById('search-section').classList.add('visible');
+});
+
+document.getElementById('change-api-btn').addEventListener('click', () => {
+  apiKey = '';
+  document.getElementById('api-key-input').value = '';
+  document.getElementById('setup-section').style.display = '';
+  document.getElementById('search-section').classList.remove('visible');
+  document.getElementById('result-area').innerHTML = '';
+});
+
+// ─── Search ───
+document.getElementById('search-btn').addEventListener('click', doSearch);
+document.getElementById('surah-input').addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+async function doSearch() {
+  const query = document.getElementById('surah-input').value.trim();
+  if (!query) { showNotif(t.errSurahEmpty, 'error'); return; }
+
+  const resultArea = document.getElementById('result-area');
+  resultArea.innerHTML = `
+    <div style="max-width:680px;margin:0 auto;padding:0 20px;">
+      <div class="spinner-wrap">
+        <div class="spin-ring"></div>
+        <div class="spin-text">${t.loadingText}</div>
+      </div>
+    </div>`;
+
+  const systemPrompt = `You are a Qur'an expert. When the user requests a surah, respond ONLY with a single valid JSON object — no markdown, no commentary, no triple backticks.
+
+JSON structure:
+{
+  "valid": boolean,
+  "surah_number": number,
+  "surah_name_arabic": "string",
+  "surah_name_latin": "string",
+  "surah_name_translation": "string in user language",
+  "total_ayat": number,
+  "revelation_place": "Makkah or Madinah in user language",
+  "has_bismillah": boolean,
+  "ayat": [
+    { "number": 1, "arabic": "full Arabic text with tashkeel/harakat", "latin": "transliteration", "translation": "translation in user language" }
+  ]
+}
+
+If invalid, return only: {"valid":false}
+
+User language code: ${browserLang}. Translate surah_name_translation, revelation_place, and ayat translations into that language. Provide ALL ayat of the requested surah. Use full, correct Arabic with complete diacritics.`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 8000,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: `Surah: ${query}` }]
+      })
+    });
+
+    if (res.status === 401 || res.status === 403) {
+      showNotif(t.errApiInvalid, 'error');
+      resultArea.innerHTML = '';
+      return;
+    }
+    if (!res.ok) {
+      showNotif(t.errGeneral, 'error');
+      resultArea.innerHTML = '';
+      return;
+    }
+
+    const data = await res.json();
+    const rawText = (data.content || []).map(b => b.text || '').join('');
+    let parsed;
+    try {
+      const cleaned = rawText.replace(/```json|```/g, '').trim();
+      // Extract JSON from the text if there's any extra text
+      const jsonMatch = cleaned.match(/\{[\s\S]*\}/);
+      parsed = JSON.parse(jsonMatch ? jsonMatch[0] : cleaned);
+    } catch {
+      showNotif(t.errSurahNotFound, 'error');
+      resultArea.innerHTML = '';
+      return;
+    }
+
+    if (!parsed.valid) {
+      showNotif(t.errSurahNotFound, 'error');
+      resultArea.innerHTML = '';
+      return;
+    }
+
+    renderSurah(parsed, resultArea);
+    showNotif(t.successSearch, 'success');
+
+  } catch (err) {
+    console.error(err);
+    if (err.message && (err.message.includes('401') || err.message.includes('403'))) {
+      showNotif(t.errApiInvalid, 'error');
+    } else {
+      showNotif(t.errGeneral, 'error');
+    }
+    resultArea.innerHTML = '';
+  }
+}
+
+function renderSurah(s, area) {
+  const showBismillah = s.has_bismillah && s.surah_number !== 1 && s.surah_number !== 9;
+  const bismillahHTML = showBismillah
+    ? `<div class="bismillah-bar">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيمِ</div>` : '';
+
+  const ayatHTML = (s.ayat || []).map(a => `
+    <div class="ayat-item">
+      <div class="ayat-num">${a.number}</div>
+      <div class="ayat-arab">${a.arabic}</div>
+      <div class="ayat-latin">${a.latin}</div>
+      <div class="ayat-trans">${a.translation}</div>
+    </div>`).join('');
+
+  area.innerHTML = `
+    <div style="max-width:680px;margin:0 auto;padding:0 20px;">
+      <div class="surah-card">
+        <div class="surah-header">
+          <div class="surah-num-badge">${s.surah_number}</div>
+          <div class="surah-meta">
+            <h2>${s.surah_name_arabic}</h2>
+            <div class="s-latin">${s.surah_name_latin}</div>
+            <div class="s-info">${s.surah_name_translation} &bull; ${t.totalAyat}: ${s.total_ayat} &bull; ${t.place}: ${s.revelation_place}</div>
+          </div>
+        </div>
+        ${bismillahHTML}
+        <div class="ayat-list">${ayatHTML}</div>
+      </div>
+    </div>`;
+}
+</script>
+</body>
+</html>
